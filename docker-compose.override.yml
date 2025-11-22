@@ -1,0 +1,15 @@
+version: "3.8"
+services:
+  frontend:
+    environment:
+      - VITE_API_URL=http://backend:4000
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+  backend:
+    ports:
+      - "4000:4000"
+    environment:
+      - CORS_ORIGINS=http://localhost:5173
