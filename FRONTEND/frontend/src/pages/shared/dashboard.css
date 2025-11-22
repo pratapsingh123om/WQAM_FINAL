@@ -1,0 +1,10 @@
+.dashboard-shell { padding:18px; font-family: system-ui, -apple-system, "Segoe UI", Roboto }
+.card { background:#fff; border-radius:10px; padding:14px; box-shadow: 0 6px 18px rgba(2,6,23,0.04); margin-bottom:12px }
+.header { display:flex; align-items:center; justify-content:space-between }
+
+
+/* Small responsive tweaks */
+@media (max-width:640px) {
+.container-admin,.container-user,.container-val { margin:1rem; padding:12px }
+.button-row { flex-direction:column }
+}

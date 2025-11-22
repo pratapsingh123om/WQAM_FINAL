@@ -10,22 +10,27 @@ export default function ValidatorLogin({ navigate }) {
     e.preventDefault();
     setMsg("Logging in...");
     try {
+      // FIX: Properly constructed template literal with backticks
       const res = await fetch(`${API}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password, role: "validator" }),
       });
       const json = await res.json();
-      if (res.ok) {
+
+      if (res.status === 401) {
+          setMsg("Login failed: Invalid email or password.");
+      } else if (res.ok) {
         localStorage.setItem("wqam_token", json.access_token);
         localStorage.setItem("wqam_role", json.role);
         setMsg("Login successful. Redirecting...");
         navigate("/validator/dashboard");
       } else {
-        setMsg("Login failed: " + (json.detail || res.statusText));
+        const detail = json.detail || res.statusText;
+        setMsg("Login failed: " + (detail.includes("Invalid email or password") ? "Invalid email or password." : detail));
       }
     } catch (err) {
-      setMsg("Network error: " + err.message);
+      setMsg("Network error: Could not reach the server.");
     }
   }
 

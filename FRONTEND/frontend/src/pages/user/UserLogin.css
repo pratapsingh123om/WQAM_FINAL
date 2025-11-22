@@ -1,0 +1,3 @@
+.container-user { max-width:520px; margin:2rem auto; padding:18px; border-radius:10px; background: #fafafa; box-shadow: 0 6px 18px rgba(2,6,23,0.04); font-family:inherit }
+.container-user h2 { margin-bottom:10px }
+.small-note { color:#6b7280; font-size:0.9rem }

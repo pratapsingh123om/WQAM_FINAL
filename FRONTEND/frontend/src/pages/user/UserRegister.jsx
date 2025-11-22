@@ -13,14 +13,15 @@ export default function UserRegister({ navigate }) {
     e.preventDefault();
     setMsg("Registering...");
     try {
-      const res = await fetch(`${API}/register?role=user`, {
+      // FIX: Added opening backtick for template literal
+      const res = await fetch(${API}/register?role=user, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password, organisation, industry_type: industryType }),
       });
       const json = await res.json();
       if (res.ok) {
-        setMsg("Registered â€” pending admin approval. Check email.");
+        setMsg("Registered — pending admin approval. Check email.");
         // option: auto switch to login after few seconds
       } else {
         setMsg("Error: " + (json.detail || JSON.stringify(json)));

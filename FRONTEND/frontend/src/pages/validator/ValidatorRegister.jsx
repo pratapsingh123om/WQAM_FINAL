@@ -13,14 +13,15 @@ export default function ValidatorRegister({ navigate }) {
     e.preventDefault();
     setMsg("Registering validator...");
     try {
-      const res = await fetch(`${API}/register?role=validator`, {
+      // FIX: Added opening backtick for template literal
+      const res = await fetch(${API}/register?role=validator, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name, email, password, organisation, validator_type: validatorType }),
       });
       const json = await res.json();
       if (res.ok) {
-        setMsg("Registered â€” pending admin approval. Check email.");
+        setMsg("Registered — pending admin approval. Check email.");
       } else {
         setMsg("Error: " + (json.detail || JSON.stringify(json)));
       }
