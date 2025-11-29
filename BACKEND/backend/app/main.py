@@ -103,7 +103,7 @@ def ensure_admin():
             admin_user = models.User(
                 name="Administrator",
                 email=os.getenv("DEFAULT_ADMIN_EMAIL", "admin@example.com"),
-                password_hash=create_password_hash(os.getenv("DEFAULT_ADMIN_PASSWORD", "admin123")),
+                password_hash=create_password_hash(os.getenv("DEFAULT_ADMIN_PASSWORD", "ganeshmeredeva")),
                 role="admin",
                 status="approved",
             )

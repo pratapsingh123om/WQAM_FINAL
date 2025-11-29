@@ -1,5 +1,7 @@
 import { useState } from "react";
-const API = import.meta.env.VITE_API_URL || "http://localhost:4000";
+
+// Use the correct environment variable for Create React App
+const API = process.env.REACT_APP_API_URL || "http://localhost:4000";
 
 export default function UserRegister({ navigate }) {
   const [name, setName] = useState("");
@@ -13,15 +15,21 @@ export default function UserRegister({ navigate }) {
     e.preventDefault();
     setMsg("Registering...");
     try {
-      // FIX: Added opening backtick for template literal
-      const res = await fetch(${API}/register?role=user, {
+      // ✅ FIXED: Added backticks for template literal
+      const res = await fetch(`${API}/register?role=user`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password, organisation, industry_type: industryType }),
+        body: JSON.stringify({ 
+          name, 
+          email, 
+          password, 
+          organisation, 
+          industry_type: industryType 
+        }),
       });
       const json = await res.json();
       if (res.ok) {
-        setMsg("Registered � pending admin approval. Check email.");
+        setMsg("Registered ✅ - pending admin approval. Check email.");
         // option: auto switch to login after few seconds
       } else {
         setMsg("Error: " + (json.detail || JSON.stringify(json)));
