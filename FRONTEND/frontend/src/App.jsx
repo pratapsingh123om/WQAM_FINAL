@@ -1,55 +1,56 @@
-﻿import { useEffect, useState } from "react";
+﻿// FRONTEND/frontend/src/App.jsx
+import React from 'react'
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import LandingPage from "./pages/LandingPage";
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/Dashboard";
-import Auth from "./pages/auth/Auth"; // combined user/validator register+login
+import Auth from "./pages/auth/Auth";
 import UserDashboard from "./pages/user/UserDashboard";
 import ValidatorDashboard from "./pages/validator/ValidatorDashboard";
+import ProtectedRoute from "./components/ProjectRoute";
 import "./App.css";
 
 function App() {
-  const [path, setPath] = useState(window.location.pathname || "/");
-
-  useEffect(() => {
-    const onPop = () => setPath(window.location.pathname);
-    window.addEventListener("popstate", onPop);
-    return () => window.removeEventListener("popstate", onPop);
-  }, []);
-
-  function navigate(to) {
-    if (to === window.location.pathname) return;
-    window.history.pushState({}, "", to);
-    setPath(to);
-  }
-
-  // route handling
-  if (path.startsWith("/admin/dashboard")) {
-    return <AdminDashboard navigate={navigate} />;
-  }
-  if (path.startsWith("/admin/login")) {
-    return <AdminLogin navigate={navigate} />;
-  }
-  if (path.startsWith("/auth")) {
-    return <Auth navigate={navigate} />;
-  }
-  if (path.startsWith("/user/dashboard")) {
-    return <UserDashboard navigate={navigate} />;
-  }
-  if (path.startsWith("/validator/dashboard")) {
-    return <ValidatorDashboard navigate={navigate} />;
-  }
-
-  // default homepage - note: no admin link here (admin has separate page)
   return (
-    <main style={{ padding: "2rem", fontFamily: "system-ui, system-ui" }}>
-      <h1>WQAM Dashboard</h1>
-      <p>Choose sign-in / register:</p>
-      <button onClick={() => navigate("/auth")}>User / Validator — Sign in / Register</button>
-      <p style={{ marginTop: 12 }}>
-        Admins use a separate page for security. Open <code>/admin/login</code> directly.
-      </p>
-      <hr />
-      <p>Tip: If you want quick admin access, open <code>/admin/login</code>.</p>
-    </main>
+    <BrowserRouter>
+      <Routes>
+        {/* New Beautiful Landing Page */}
+        <Route path="/" element={<LandingPage />} />
+        
+        {/* Auth Routes */}
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/admin/login" element={<AdminLogin />} />
+        
+        {/* Protected Routes */}
+        <Route 
+          path="/admin/dashboard" 
+          element={
+            <ProtectedRoute role="admin">
+              <AdminDashboard />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/user/dashboard" 
+          element={
+            <ProtectedRoute role="user">
+              <UserDashboard />
+            </ProtectedRoute>
+          } 
+        />
+        <Route 
+          path="/validator/dashboard" 
+          element={
+            <ProtectedRoute role="validator">
+              <ValidatorDashboard />
+            </ProtectedRoute>
+          } 
+        />
+        
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
 

@@ -1,9 +1,12 @@
-﻿// src/pages/admin/AdminLogin.jsx
+﻿// FRONTEND/frontend/src/pages/admin/AdminLogin.jsx
 import { useState } from 'react'
-import api from '../../api/axios'   // relative path to axios instance
-import './AdminLogin.css' // optional styling
+import { useNavigate } from 'react-router-dom'
+import './AdminLogin.css'
 
-export default function AdminLogin({ navigate }) {
+const API = import.meta.env.VITE_API_URL || "http://localhost:4000";
+
+export default function AdminLogin() {
+  const navigate = useNavigate()
   const [email, setEmail] = useState('admin@wqam.local')
   const [password, setPassword] = useState('admin123')
   const [message, setMessage] = useState('')
@@ -12,52 +15,58 @@ export default function AdminLogin({ navigate }) {
     e.preventDefault()
     setMessage('Logging in...')
     try {
-      // IMPORTANT: backend expects JSON fields that match schemas.LoginRequest (email, password)
-      const res = await api.post('/auth/admin-login', { email, password })
-
-      if (res?.data) {
-        setMessage('Login successful — redirecting...')
-        // save token if provided
-        if (res.data.access_token) {
-          localStorage.setItem('wqam_token', res.data.access_token)
-        }
-        // navigate to admin dashboard
-        navigate('/admin/dashboard')
+      const res = await fetch(`${API}/auth/admin-login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      
+      const json = await res.json();
+      
+      if (res.ok) {
+        // ✅ Store token and role
+        localStorage.setItem('wqam_token', json.access_token);
+        localStorage.setItem('wqam_role', json.role);
+        setMessage('Login successful — redirecting...');
+        
+        // ✅ Navigate to admin dashboard
+        navigate('/admin/dashboard');
       } else {
-        setMessage('Login succeeded but backend response unexpected.')
+        setMessage('Login failed: ' + (json.detail || 'Unknown error'));
       }
     } catch (err) {
-      // Best-effort to extract a readable message from FastAPI responses (422, 401, 404, etc)
-      if (err.response?.data) {
-        const d = err.response.data
-        // FastAPI 422 -> { detail: [ ... ] }, other errors -> { detail: "..." } or {"message":...}
-        if (Array.isArray(d.detail)) {
-          setMessage('Validation error: ' + d.detail.map(it => `${it.loc.join('.')}: ${it.msg}`).join('; '))
-        } else if (typeof d.detail === 'string') {
-          setMessage('Login failed: ' + d.detail)
-        } else {
-          setMessage('Login failed: ' + JSON.stringify(d))
-        }
-      } else {
-        setMessage('Network error: ' + (err.message || String(err)))
-      }
+      setMessage('Network error: ' + err.message);
     }
   }
 
   return (
-    <div style={{maxWidth:520, margin:'2rem auto'}}>
+    <div className="container-admin">
       <h2>Admin Login</h2>
       <form onSubmit={onSubmit}>
-        <label>Email</label><br />
-        <input value={email} onChange={e=>setEmail(e.target.value)} required style={{width:'100%',padding:8}} />
-        <label style={{marginTop:8}}>Password</label><br />
-        <input type="password" value={password} onChange={e=>setPassword(e.target.value)} required style={{width:'100%',padding:8}} />
-        <div style={{marginTop:12}}>
-          <button type="submit" style={{padding:'8px 16px'}}>Sign in</button>
-          <button type="button" style={{padding:'8px 16px', marginLeft:8}} onClick={()=>navigate('/')}>Back</button>
+        <div className="form-row">
+          <label>Email</label>
+          <input 
+            type="email" 
+            value={email} 
+            onChange={e => setEmail(e.target.value)} 
+            required 
+          />
+        </div>
+        <div className="form-row">
+          <label>Password</label>
+          <input 
+            type="password" 
+            value={password} 
+            onChange={e => setPassword(e.target.value)} 
+            required 
+          />
+        </div>
+        <div className="button-row">
+          <button type="submit" className="btn-primary">Sign in</button>
+          <button type="button" className="btn-ghost" onClick={() => navigate('/')}>Back</button>
         </div>
       </form>
-      <p style={{marginTop:12}}>{message}</p>
+      <div className="message">{message}</div>
     </div>
   )
 }

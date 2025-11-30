@@ -1,114 +1,138 @@
+// FRONTEND/frontend/src/pages/user/UserDashboard.jsx
 import { useEffect, useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import DashboardAnimation from "../../components/DashboardAnimation";
 
-// The API endpoint from your config
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
-// --- Utility Components for Visuals ---
-
-// 1. Water Quality Index (WQI) Gauge
+// Enhanced WQI Gauge with Smooth Animations
 const WqiGauge = ({ wqi, status, color }) => {
-    // Normalizes WQI (0-100) to a degree value for the SVG arc
-    const normalizedValue = Math.min(Math.max(wqi, 0), 100);
-    const strokeDashoffset = 440 - (440 * normalizedValue) / 100;
-    
-    return (
-        <div className="flex flex-col items-center justify-center p-6 bg-slate-800/30 rounded-2xl shadow-xl backdrop-blur-sm border border-cyan-800/50">
-            <h3 className="text-xl font-bold text-gray-200 mb-4">Overall WQI</h3>
-            <svg width="160" height="160" viewBox="0 0 160 160" className="transform rotate-180">
-                {/* Background Arc (Gray) */}
-                <circle
-                    cx="80"
-                    cy="80"
-                    r="70"
-                    fill="none"
-                    stroke="#0A192F"
-                    strokeWidth="15"
-                />
-                {/* Foreground Arc (Colored) */}
-                <circle
-                    cx="80"
-                    cy="80"
-                    r="70"
-                    fill="none"
-                    stroke={color}
-                    strokeWidth="15"
-                    strokeDasharray="440"
-                    strokeDashoffset={strokeDashoffset}
-                    strokeLinecap="round"
-                    style={{ transition: 'stroke-dashoffset 1s ease-out' }}
-                />
-            </svg>
-            <div className="absolute flex flex-col items-center justify-center">
-                <span className="text-4xl font-extrabold text-white mt-[-80px]">{wqi}</span>
-                <span className={`text-sm font-semibold mt-1 px-3 py-1 rounded-full ${status === 'SAFE' ? 'bg-emerald-600' : status === 'WARNING' ? 'bg-amber-600' : 'bg-red-600'}`}>
-                    {status}
-                </span>
-            </div>
-        </div>
-    );
+  const normalizedValue = Math.min(Math.max(wqi, 0), 100);
+  const strokeDashoffset = 440 - (440 * normalizedValue) / 100;
+  
+  return (
+    <div className="relative flex flex-col items-center justify-center p-8 bg-gradient-to-br from-slate-800/40 to-slate-900/60 rounded-3xl shadow-2xl backdrop-blur-sm border border-cyan-500/30 transform transition-all duration-500 hover:scale-105 hover:shadow-cyan-500/20">
+      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-blue-500/5 rounded-3xl"></div>
+      <h3 className="text-xl font-bold text-cyan-100 mb-6 z-10">Water Quality Index</h3>
+      <svg width="180" height="180" viewBox="0 0 180 180" className="transform rotate-180 z-10">
+        <circle cx="90" cy="90" r="75" fill="none" stroke="#0A192F" strokeWidth="12"/>
+        <circle cx="90" cy="90" r="75" fill="none" stroke={color} strokeWidth="12" strokeDasharray="471" 
+                strokeDashoffset={strokeDashoffset} strokeLinecap="round" 
+                style={{ transition: 'stroke-dashoffset 1.5s ease-out' }}/>
+      </svg>
+      <div className="absolute flex flex-col items-center justify-center z-10">
+        <span className="text-5xl font-black text-white mt-[-90px] bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent">
+          {wqi}
+        </span>
+        <span className={`text-sm font-bold mt-2 px-4 py-2 rounded-full backdrop-blur-sm border ${
+          status === 'SAFE' ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30' : 
+          status === 'WARNING' ? 'bg-amber-500/20 text-amber-300 border-amber-500/30' : 
+          'bg-red-500/20 text-red-300 border-red-500/30'
+        }`}>
+          {status}
+        </span>
+      </div>
+    </div>
+  );
 };
 
-// 2. Key Performance Indicator (KPI) Data Card
-const DataCard = ({ title, value, unit, icon, color = 'text-cyan-400' }) => {
-    return (
-        <div className="p-4 bg-slate-800/30 rounded-xl shadow-lg transition-all duration-300 hover:bg-slate-700/50 hover:shadow-cyan-500/20 border border-cyan-800/50">
-            <div className="flex items-center space-x-3">
-                <div className={`text-2xl ${color}`}>{icon}</div>
-                <div className="flex flex-col">
-                    <span className="text-sm text-gray-400 uppercase">{title}</span>
-                    <span className="text-3xl font-extrabold text-white">
-                        {value}
-                        <span className="text-sm font-normal ml-1 text-gray-400">{unit}</span>
-                    </span>
-                </div>
-            </div>
+// Enhanced Data Card with Hover Effects
+const DataCard = ({ title, value, unit, icon, color = 'text-cyan-400', trend, status }) => {
+  return (
+    <div className="group relative p-6 bg-gradient-to-br from-slate-800/40 to-slate-900/60 rounded-2xl shadow-xl transition-all duration-500 hover:scale-105 hover:shadow-cyan-500/10 border border-slate-700/50 backdrop-blur-sm overflow-hidden">
+      {/* Animated background gradient */}
+      <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-transparent to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+      
+      <div className="relative z-10 flex items-center space-x-4">
+        <div className={`text-3xl transform transition-transform duration-300 group-hover:scale-110 ${color}`}>
+          {icon}
         </div>
-    );
+        <div className="flex flex-col">
+          <span className="text-sm font-semibold text-cyan-200 uppercase tracking-wider">{title}</span>
+          <div className="flex items-baseline space-x-2">
+            <span className="text-3xl font-black text-white">{value}</span>
+            <span className="text-sm font-medium text-gray-400">{unit}</span>
+          </div>
+          {trend && (
+            <span className={`text-xs font-semibold mt-1 ${
+              trend > 0 ? 'text-emerald-400' : 'text-red-400'
+            }`}>
+              {trend > 0 ? '↗' : '↘'} {Math.abs(trend)}%
+            </span>
+          )}
+        </div>
+      </div>
+      
+      {/* Status indicator */}
+      {status && (
+        <div className={`absolute top-4 right-4 w-3 h-3 rounded-full ${
+          status === 'good' ? 'bg-emerald-500' : 
+          status === 'warning' ? 'bg-amber-500' : 
+          'bg-red-500'
+        }`}></div>
+      )}
+    </div>
+  );
 };
 
+// Water Quality Trend Chart
+const TrendChart = () => {
+  return (
+    <div className="col-span-2 p-6 bg-gradient-to-br from-slate-800/40 to-slate-900/60 rounded-3xl shadow-xl border border-slate-700/50 backdrop-blur-sm">
+      <h3 className="text-xl font-bold text-cyan-100 mb-6">Water Quality Trends (24h)</h3>
+      <div className="h-64 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-cyan-500 text-6xl mb-4">📊</div>
+          <p className="text-cyan-200 font-semibold">Real-time Analytics</p>
+          <p className="text-gray-400 text-sm mt-2">Interactive charts coming soon</p>
+        </div>
+      </div>
+    </div>
+  );
+};
 
-// --- Main Dashboard Component ---
-
-export default function UserDashboard({ navigate }) {
+export default function UserDashboard() {
+  const navigate = useNavigate();
   const [me, setMe] = useState(null);
-  // Placeholder state for sensor data
   const [data, setData] = useState({
-    wqi: 78, // Example WQI value
+    wqi: 78,
     ph: 7.2,
-    turbidity: 5.5, // NTU
-    conductivity: 512, // uS/cm
-    dissolvedOxygen: 7.8, // mg/L
+    turbidity: 5.5,
+    conductivity: 512,
+    dissolvedOxygen: 7.8,
+    temperature: 22.5,
     lastUpdated: new Date().toLocaleTimeString(),
   });
 
-  // Fetch user info
+  const { status, color } = useMemo(() => {
+    if (data.wqi >= 80) return { status: 'SAFE', color: '#28FF8E' };
+    if (data.wqi >= 50) return { status: 'WARNING', color: '#FFD700' };
+    return { status: 'CRITICAL', color: '#FF3B3B' };
+  }, [data.wqi]);
+
   async function loadMe() {
     const token = localStorage.getItem("wqam_token");
     if (!token) { navigate("/"); return; }
-    const res = await fetch(`${API_BASE_URL}/me`, { headers: { Authorization: "Bearer " + token } });
+    const res = await fetch(`${API_BASE_URL}/me`, { 
+      headers: { Authorization: "Bearer " + token } 
+    });
     if (res.ok) setMe(await res.json());
     else navigate("/");
   }
 
-  // Determine WQI Status and Color dynamically
-  const { status, color } = useMemo(() => {
-    if (data.wqi >= 80) return { status: 'SAFE', color: '#28FF8E' }; // Emerald Green
-    if (data.wqi >= 50) return { status: 'WARNING', color: '#FFD700' }; // Gold/Yellow
-    return { status: 'CRITICAL', color: '#FF3B3B' }; // Red
-  }, [data.wqi]);
-
-  useEffect(() => { loadMe(); }, []);
-
-  // Simulate real-time data updates (replace with actual API polling)
+  // Simulate real-time data updates
   useEffect(() => {
+    loadMe();
+    
     const interval = setInterval(() => {
-        // Simulating minor fluctuation for the live effect
-        setData(prev => ({
-            ...prev,
-            wqi: Math.round(70 + Math.random() * 30),
-            lastUpdated: new Date().toLocaleTimeString(),
-        }));
-    }, 5000);
+      setData(prev => ({
+        ...prev,
+        wqi: Math.round(70 + Math.random() * 30),
+        ph: 6.8 + Math.random() * 1.4,
+        lastUpdated: new Date().toLocaleTimeString(),
+      }));
+    }, 8000);
+    
     return () => clearInterval(interval);
   }, []);
 
@@ -118,99 +142,147 @@ export default function UserDashboard({ navigate }) {
     navigate("/");
   }
 
-  if (!me) return <div className="text-center text-cyan-400 mt-20">Loading Dashboard...</div>;
+  if (!me) return (
+    <div className="min-h-screen bg-deep-navy flex items-center justify-center">
+      <div className="text-center">
+        <div className="w-16 h-16 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <p className="text-cyan-400 font-semibold">Loading Dashboard...</p>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="min-h-screen p-6 bg-deep-navy text-gray-50 font-sans">
-      <header className="flex justify-between items-center pb-6 border-b border-cyan-800/50 mb-6">
-        <h1 className="text-3xl font-extrabold text-vibrant-aqua tracking-wider">
-          WQAM User Dashboard
-        </h1>
-        <div className="flex items-center space-x-4">
-            <span className="text-sm text-gray-400 hidden sm:inline">Welcome, {me.email}</span>
-            <button 
-                onClick={logout} 
-                className="px-4 py-2 text-sm font-semibold rounded-lg bg-red-600/80 hover:bg-red-700 transition duration-200"
-            >
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-deep-navy to-slate-900 text-white font-sans">
+      {/* Animated Header */}
+      <header className="relative bg-gradient-to-r from-slate-800/80 to-slate-900/80 backdrop-blur-md border-b border-cyan-800/30">
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-4">
+              <div className="w-10 h-10 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-xl flex items-center justify-center">
+                <span className="text-white font-bold text-lg">💧</span>
+              </div>
+              <div>
+                <h1 className="text-2xl font-black bg-gradient-to-r from-cyan-300 to-blue-300 bg-clip-text text-transparent">
+                  WQAM Dashboard
+                </h1>
+                <p className="text-sm text-cyan-200">Real-time Water Quality Monitoring</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-4">
+              <div className="text-right">
+                <p className="text-cyan-100 font-semibold">{me.email}</p>
+                <p className="text-sm text-cyan-300">Industry User</p>
+              </div>
+              <button 
+                onClick={logout}
+                className="px-6 py-2 bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-red-500/25"
+              >
                 Logout
-            </button>
+              </button>
+            </div>
+          </div>
         </div>
       </header>
 
-      {/* Main Dashboard Layout */}
-      <main className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* WQI GAUGE (Column 1) */}
-        <section className="lg:col-span-1 flex justify-center">
+      {/* Welcome Animation */}
+      <div className="container mx-auto px-6 py-8">
+        <DashboardAnimation />
+      </div>
+
+      {/* Main Dashboard Grid */}
+      <main className="container mx-auto px-6 pb-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          
+          {/* WQI Gauge */}
+          <div className="lg:col-span-1 flex justify-center">
             <WqiGauge wqi={data.wqi} status={status} color={color} />
-        </section>
+          </div>
 
-        {/* KPI CARDS (Columns 2 & 3) */}
-        <section className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* KPI 1: pH */}
+          {/* KPI Cards Grid */}
+          <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
             <DataCard 
-                title="pH Level" 
-                value={data.ph.toFixed(1)} 
-                unit="" 
-                icon="💧" 
-                color={data.ph > 8.5 || data.ph < 6.5 ? 'text-amber-500' : 'text-emerald-500'}
+              title="pH Level" 
+              value={data.ph.toFixed(1)} 
+              unit="" 
+              icon="🧪" 
+              color={data.ph > 8.5 || data.ph < 6.5 ? 'text-amber-400' : 'text-emerald-400'}
+              status={data.ph > 8.5 || data.ph < 6.5 ? 'warning' : 'good'}
             />
-            {/* KPI 2: Turbidity */}
             <DataCard 
-                title="Turbidity" 
-                value={data.turbidity.toFixed(1)} 
-                unit="NTU" 
-                icon="🌫️" 
-                color={data.turbidity > 5 ? 'text-amber-500' : 'text-emerald-500'}
+              title="Turbidity" 
+              value={data.turbidity.toFixed(1)} 
+              unit="NTU" 
+              icon="🌫️" 
+              color={data.turbidity > 5 ? 'text-amber-400' : 'text-emerald-400'}
+              status={data.turbidity > 5 ? 'warning' : 'good'}
             />
-            {/* KPI 3: Conductivity */}
             <DataCard 
-                title="Conductivity" 
-                value={data.conductivity} 
-                unit="μS/cm" 
-                icon="⚡" 
-                color="text-vibrant-aqua"
+              title="Conductivity" 
+              value={data.conductivity} 
+              unit="μS/cm" 
+              icon="⚡" 
+              color="text-blue-400"
+              trend={2.3}
             />
-            {/* KPI 4: Dissolved Oxygen */}
             <DataCard 
-                title="Dissolved Oxygen" 
-                value={data.dissolvedOxygen.toFixed(1)} 
-                unit="mg/L" 
-                icon="💨" 
-                color={data.dissolvedOxygen < 4 ? 'text-red-500' : 'text-emerald-500'}
+              title="Dissolved Oxygen" 
+              value={data.dissolvedOxygen.toFixed(1)} 
+              unit="mg/L" 
+              icon="💨" 
+              color={data.dissolvedOxygen < 4 ? 'text-red-400' : 'text-emerald-400'}
+              status={data.dissolvedOxygen < 4 ? 'critical' : 'good'}
             />
-        </section>
-        
-        {/* Timeseries Charts Placeholder (Full Width Row) */}
-        <section className="lg:col-span-3">
-            <div className="p-6 bg-slate-800/30 rounded-2xl shadow-xl border border-cyan-800/50">
-                <h3 className="text-xl font-bold text-gray-200 mb-4 border-b border-cyan-800/50 pb-2">
-                    Timeseries Analysis (Past 24 Hours)
-                </h3>
-                <p className="text-gray-400 italic">
-                    [Placeholder for dynamic line charts using a library like Recharts or D3]
-                </p>
-                <div className="h-64 flex items-center justify-center text-cyan-600/50 text-lg">
-                    Line Chart Visualization Goes Here
-                </div>
+          </div>
+        </div>
+
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+          <TrendChart />
+          
+          {/* Quick Actions */}
+          <div className="p-6 bg-gradient-to-br from-slate-800/40 to-slate-900/60 rounded-3xl shadow-xl border border-slate-700/50 backdrop-blur-sm">
+            <h3 className="text-xl font-bold text-cyan-100 mb-6">Quick Actions</h3>
+            <div className="space-y-4">
+              <button className="w-full px-4 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105">
+                📤 Upload Water Data
+              </button>
+              <button className="w-full px-4 py-3 bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105">
+                📊 Generate Report
+              </button>
+              <button className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105">
+                🔔 Set Alerts
+              </button>
             </div>
-        </section>
+          </div>
+        </div>
 
-        {/* Data Upload / Logs Placeholder (Full Width Row) */}
-        <section className="lg:col-span-3">
-            <div className="p-6 bg-slate-800/30 rounded-2xl shadow-xl border border-cyan-800/50">
-                <h3 className="text-xl font-bold text-gray-200 mb-4 border-b border-cyan-800/50 pb-2">
-                    Data Operations & Latest Log
-                </h3>
-                <p className="text-gray-400">
-                    Last Data Update: {data.lastUpdated}
-                </p>
-                <button className="mt-4 px-6 py-2 bg-cyan-600 hover:bg-cyan-700 rounded-lg text-white font-semibold transition duration-200">
-                    Upload New Data (CSV)
-                </button>
+        {/* System Status */}
+        <div className="p-6 bg-gradient-to-br from-slate-800/40 to-slate-900/60 rounded-3xl shadow-xl border border-slate-700/50 backdrop-blur-sm">
+          <h3 className="text-xl font-bold text-cyan-100 mb-6">System Status</h3>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="text-center p-4 bg-slate-800/50 rounded-xl">
+              <div className="text-2xl mb-2">🟢</div>
+              <p className="text-sm text-cyan-200">Sensors</p>
+              <p className="text-lg font-bold text-white">Online</p>
             </div>
-        </section>
-
+            <div className="text-center p-4 bg-slate-800/50 rounded-xl">
+              <div className="text-2xl mb-2">🟢</div>
+              <p className="text-sm text-cyan-200">Data Stream</p>
+              <p className="text-lg font-bold text-white">Active</p>
+            </div>
+            <div className="text-center p-4 bg-slate-800/50 rounded-xl">
+              <div className="text-2xl mb-2">⏱️</div>
+              <p className="text-sm text-cyan-200">Last Update</p>
+              <p className="text-lg font-bold text-white">{data.lastUpdated}</p>
+            </div>
+            <div className="text-center p-4 bg-slate-800/50 rounded-xl">
+              <div className="text-2xl mb-2">📈</div>
+              <p className="text-sm text-cyan-200">WQI Trend</p>
+              <p className="text-lg font-bold text-white">Stable</p>
+            </div>
+          </div>
+        </div>
       </main>
     </div>
   );

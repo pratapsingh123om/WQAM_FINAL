@@ -1,4 +1,4 @@
-# backend/app/schemas.py
+# BACKEND/backend/app/schemas.py
 from typing import Optional
 from pydantic import BaseModel, Field, validator
 
@@ -15,8 +15,6 @@ class RegisterRequest(BaseModel):
     def normalize_email(cls, v: str) -> str:
         if isinstance(v, str):
             v = v.strip()
-            # Basic dev-friendly acceptance: allow normal emails and simple local/dev hostnames (e.g. admin@wqam.local)
-            # If you want stricter validation in prod, replace this with pydantic.EmailStr.
             if "@" not in v:
                 raise ValueError("email must contain '@'")
             return v
@@ -26,7 +24,7 @@ class RegisterRequest(BaseModel):
 class LoginRequest(BaseModel):
     email: str = Field(..., description="User email")
     password: str = Field(..., description="Password")
-    role: Optional[str] = None  # user / validator / admin (admin uses admin-login endpoint)
+    role: Optional[str] = None  # user / validator / admin
 
     @validator("email", pre=True)
     def strip_email(cls, v: str) -> str:
@@ -50,5 +48,5 @@ class UserPublic(BaseModel):
     validator_type: Optional[str] = None
     status: str
 
-    class Config:
-        orm_mode = True
+    # ✅ FIX: Use from_attributes instead of orm_mode for Pydantic v2
+    model_config = {"from_attributes": True}

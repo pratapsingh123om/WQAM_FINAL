@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 const API = import.meta.env.VITE_API_URL || "http://localhost:4000";
 
-export default function UserLogin({ navigate }) {
+export default function UserLogin() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [msg, setMsg] = useState("");
@@ -10,14 +12,13 @@ export default function UserLogin({ navigate }) {
     e.preventDefault();
     setMsg("Logging in...");
     try {
-      // FIX: Properly constructed template literal with backticks
       const res = await fetch(`${API}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password, role: "user" }),
       });
       const json = await res.json();
-      
+
       if (res.status === 401) {
           setMsg("Login failed: Invalid email or password.");
       } else if (res.ok) {

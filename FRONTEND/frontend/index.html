@@ -1,13 +1,27 @@
+<!-- FRONTEND/frontend/index.html -->
 <!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
+    <title>WQAM Dashboard</title>
+    <script>
+      // Debug script
+      console.log('HTML loaded successfully');
+      window.addEventListener('DOMContentLoaded', () => {
+        console.log('DOM fully loaded');
+        console.log('Root element exists:', !!document.getElementById('root'));
+      });
+    </script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div style="padding: 2rem; text-align: center;">
+        <h1>Loading WQAM Dashboard...</h1>
+        <p>If you see this for more than 5 seconds, there's a JavaScript error.</p>
+      </div>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
